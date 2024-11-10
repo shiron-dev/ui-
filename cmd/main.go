@@ -1,7 +1,11 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"regexp"
@@ -9,6 +13,12 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/joho/godotenv"
+	"golang.org/x/exp/rand"
+)
+
+const (
+	baseUrl      = "https://vt.imgs.shiron.dev/ui_shig/stickers/"
+	stickersJson = "stickers.json"
 )
 
 func main() {
@@ -51,7 +61,8 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if uiCheck(m.Content) {
-		_, err := s.ChannelMessageSend(m.ChannelID, "うい！")
+		_, err := s.ChannelMessageSend(m.ChannelID, randomSticker(context.Background()))
+
 		if err != nil {
 			panic(err)
 		}
@@ -65,4 +76,45 @@ func uiCheck(message string) bool {
 	}
 
 	return reg.MatchString(message)
+}
+
+type Response struct {
+	Stickers []StickerResp `json:"stickers"`
+}
+
+type StickerResp struct {
+	Name string `json:"name"`
+	Img  string `json:"img"`
+}
+
+func randomSticker(ctx context.Context) string {
+	jsonPath, err := url.JoinPath(baseUrl, stickersJson)
+	if err != nil {
+		panic(err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, jsonPath, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	var stickers Response
+	if err = json.NewDecoder(resp.Body).Decode(&stickers); err != nil {
+		panic(err)
+	}
+
+	img := stickers.Stickers[rand.Intn(len(stickers.Stickers))].Img
+
+	imgPath, err := url.JoinPath(baseUrl, img)
+	if err != nil {
+		panic(err)
+	}
+
+	return imgPath
 }
