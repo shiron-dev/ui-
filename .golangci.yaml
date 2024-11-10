@@ -1,0 +1,11 @@
+issues:
+  exclude-dirs:
+    - gen
+
+linters:
+  enable-all: true
+  disable:
+    - execinquery
+    - gomnd
+    - exportloopref
+    - depguard
