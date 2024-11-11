@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"regexp"
+	"strings"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
@@ -60,13 +61,30 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if uiCheck(m.Content) {
-		_, err := s.ChannelMessageSend(m.ChannelID, randomSticker(context.Background()))
+	img := ""
+	if str, ok := uiSayCheck(m.Content); ok {
+		img = getStickerByMsg(context.Background(), str)
+	}
 
+	if img == "" && uiCheck(m.Content) {
+		img = randomSticker(context.Background())
+	}
+
+	if img != "" {
+		_, err := s.ChannelMessageSend(m.ChannelID, img)
 		if err != nil {
 			panic(err)
 		}
 	}
+}
+
+func uiSayCheck(message string) (string, bool) {
+	re := regexp.MustCompile(`^\s*([うぅ憂][いぃ]|憂|(?i)ui)[>＞]`)
+	if loc := re.FindStringIndex(message); loc != nil {
+		return strings.TrimSpace(message[loc[1]:]), true
+	}
+
+	return "", false
 }
 
 func uiCheck(message string) bool {
@@ -88,6 +106,36 @@ type StickerResp struct {
 }
 
 func randomSticker(ctx context.Context) string {
+	stickers := getStickers(ctx)
+
+	img := stickers.Stickers[rand.Intn(len(stickers.Stickers))].Img
+
+	imgPath, err := url.JoinPath(baseUrl, img)
+	if err != nil {
+		panic(err)
+	}
+
+	return imgPath
+}
+
+func getStickerByMsg(ctx context.Context, mgs string) string {
+	stickers := getStickers(ctx)
+
+	for _, sticker := range stickers.Stickers {
+		if sticker.Name == mgs {
+			imgPath, err := url.JoinPath(baseUrl, sticker.Img)
+			if err != nil {
+				panic(err)
+			}
+
+			return imgPath
+		}
+	}
+
+	return ""
+}
+
+func getStickers(ctx context.Context) Response {
 	jsonPath, err := url.JoinPath(baseUrl, stickersJson)
 	if err != nil {
 		panic(err)
@@ -109,12 +157,5 @@ func randomSticker(ctx context.Context) string {
 		panic(err)
 	}
 
-	img := stickers.Stickers[rand.Intn(len(stickers.Stickers))].Img
-
-	imgPath, err := url.JoinPath(baseUrl, img)
-	if err != nil {
-		panic(err)
-	}
-
-	return imgPath
+	return stickers
 }
