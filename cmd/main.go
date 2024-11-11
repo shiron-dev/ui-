@@ -70,7 +70,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func uiCheck(message string) bool {
-	reg, err := regexp.Compile(`^\s*([うぅ憂][いぃ]|憂|(?i)ui)[\p{P}\p{S}ー]*$`)
+	reg, err := regexp.Compile(`^\s*([うぅ憂][いぃ]|憂|(?i)ui)([\p{P}\p{S}ー]|<:.+:\d+>)*$`)
 	if err != nil {
 		panic(err)
 	}
