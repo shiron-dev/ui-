@@ -18,12 +18,15 @@ import (
 )
 
 const (
-	baseUrl      = "https://vt.imgs.shiron.dev/ui_shig/stickers/"
-	stickersJson = "stickers.json"
+	baseURL      = "https://vt.imgs.shiron.dev/ui_shig/stickers/"
+	stickersJSON = "stickers.json"
 )
 
 func main() {
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
 
 	discord, err := discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
 	if err != nil {
@@ -39,7 +42,7 @@ func main() {
 
 	stopBot := make(chan os.Signal, 1)
 
-	signal.Notify(stopBot, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+	signal.Notify(stopBot, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 
 	<-stopBot
 
@@ -49,49 +52,54 @@ func main() {
 	}
 }
 
-func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if m == nil {
+func onMessageCreate(discordSession *discordgo.Session, discordMessage *discordgo.MessageCreate) {
+	if discordMessage == nil {
 		panic("message is nil")
 	}
 
-	u := m.Author
-	fmt.Printf("%20s %20s(%20s) > %s\n", m.ChannelID, u.Username, u.ID, m.Content)
+	u := discordMessage.Author
 
-	if m.Author.Bot {
+	//nolint:forbidigo
+	fmt.Printf("%20s %20s(%20s) > %s\n", discordMessage.ChannelID, u.Username, u.ID, discordMessage.Content)
+
+	if discordMessage.Author.Bot {
 		return
 	}
 
 	img := ""
-	if str, ok := uiSayCheck(m.Content); ok {
+	if str, ok := uiSayCheck(discordMessage.Content); ok {
 		img = getStickerByMsg(context.Background(), str)
 	}
 
-	if img == "" && uiCheck(m.Content) {
+	if img == "" && uiCheck(discordMessage.Content) {
 		img = randomSticker(context.Background())
 	}
 
 	if img != "" {
-		_, err := s.ChannelMessageSend(m.ChannelID, img)
+		_, err := discordSession.ChannelMessageSend(discordMessage.ChannelID, img)
 		if err != nil {
 			panic(err)
 		}
 	}
 }
 
+//nolint:gosmopolitan
+const uiSayCheckPattern = `^\s*([うぅ憂][いぃ]|憂|(?i)ui)[>＞]`
+
 func uiSayCheck(message string) (string, bool) {
-	re := regexp.MustCompile(`^\s*([うぅ憂][いぃ]|憂|(?i)ui)[>＞]`)
-	if loc := re.FindStringIndex(message); loc != nil {
+	reg := regexp.MustCompile(uiSayCheckPattern)
+	if loc := reg.FindStringIndex(message); loc != nil {
 		return strings.TrimSpace(message[loc[1]:]), true
 	}
 
 	return "", false
 }
 
+//nolint:gosmopolitan
+const uiCheckPattern = `^\s*([うぅ憂][いぃ]|憂|(?i)ui)([\p{P}\p{S}ー]|<:.+:\d+>)*$`
+
 func uiCheck(message string) bool {
-	reg, err := regexp.Compile(`^\s*([うぅ憂][いぃ]|憂|(?i)ui)([\p{P}\p{S}ー]|<:.+:\d+>)*$`)
-	if err != nil {
-		panic(err)
-	}
+	reg := regexp.MustCompile(uiCheckPattern)
 
 	return reg.MatchString(message)
 }
@@ -110,7 +118,7 @@ func randomSticker(ctx context.Context) string {
 
 	img := stickers.Stickers[rand.Intn(len(stickers.Stickers))].Img
 
-	imgPath, err := url.JoinPath(baseUrl, img)
+	imgPath, err := url.JoinPath(baseURL, img)
 	if err != nil {
 		panic(err)
 	}
@@ -123,7 +131,7 @@ func getStickerByMsg(ctx context.Context, mgs string) string {
 
 	for _, sticker := range stickers.Stickers {
 		if sticker.Name == mgs {
-			imgPath, err := url.JoinPath(baseUrl, sticker.Img)
+			imgPath, err := url.JoinPath(baseURL, sticker.Img)
 			if err != nil {
 				panic(err)
 			}
@@ -136,7 +144,7 @@ func getStickerByMsg(ctx context.Context, mgs string) string {
 }
 
 func getStickers(ctx context.Context) Response {
-	jsonPath, err := url.JoinPath(baseUrl, stickersJson)
+	jsonPath, err := url.JoinPath(baseURL, stickersJSON)
 	if err != nil {
 		panic(err)
 	}
