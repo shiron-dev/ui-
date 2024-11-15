@@ -1,6 +1,6 @@
 module ui-
 
-go 1.23.2
+go 1.23.3
 
 require github.com/bwmarrin/discordgo v0.28.1
 
