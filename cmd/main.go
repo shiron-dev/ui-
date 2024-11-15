@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/joho/godotenv"
@@ -27,6 +28,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	//nolint:gosec
+	rand.Seed(uint64(time.Now().UnixNano()))
 
 	discord, err := discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
 	if err != nil {
@@ -114,6 +118,9 @@ type StickerResp struct {
 }
 
 func randomSticker(ctx context.Context) string {
+	//nolint:gosec
+	rand.Seed(uint64(time.Now().UnixNano()))
+
 	stickers := getStickers(ctx)
 
 	img := stickers.Stickers[rand.Intn(len(stickers.Stickers))].Img
