@@ -5,7 +5,7 @@ WORKDIR /app
 COPY . .
 RUN go mod download && go build -o main /app/cmd/main.go
 
-FROM alpine:3.20
+FROM alpine:3.21
 
 WORKDIR /app
 
