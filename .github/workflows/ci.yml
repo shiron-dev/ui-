@@ -35,7 +35,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: reviewdog/action-yamllint@v1.20.0
+      - uses: reviewdog/action-yamllint@1dca3ad811867be18fbe293a9818d715a6c2cd46 # v1.20.0
         with:
           level: warning
           yamllint_flags: "-c .yamllint ."
@@ -46,7 +46,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: reviewdog/action-actionlint@v1.62.0
+      - uses: reviewdog/action-actionlint@af17f9e3640ac863dbcc515d45f5f35d708d0faf # v1.62.0
         with:
           level: warning
           fail_on_error: true
@@ -67,7 +67,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Dockerfile lint
-        uses: reviewdog/action-hadolint@v1.48.2
+        uses: reviewdog/action-hadolint@a588cf93c77060a2836b260c6f0860dc102e8d83 # v1.48.2
         with:
           fail_on_error: true
 
@@ -77,11 +77,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@53851d14592bedcffcf25ea515637cff71ef929a # v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # v3
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@b32b51a8eda65d6793cd0494a773d4f6bcef32dc # v6
         with:
           push: false
           context: .
