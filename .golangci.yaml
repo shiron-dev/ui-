@@ -1,9 +1,10 @@
-issues:
-  exclude-dirs:
-    - gen
-
+version: "2"
 linters:
-  enable-all: true
+  default: all
   disable:
-    - exportloopref
     - depguard
+  settings:
+    revive:
+      rules:
+        - name: package-comments
+          disabled: true
