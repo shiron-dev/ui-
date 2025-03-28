@@ -108,11 +108,11 @@ func uiCheck(message string) bool {
 	return reg.MatchString(message)
 }
 
-type Response struct {
-	Stickers []StickerResp `json:"stickers"`
+type response struct {
+	Stickers []stickerResp `json:"stickers"`
 }
 
-type StickerResp struct {
+type stickerResp struct {
 	Name string `json:"name"`
 	Img  string `json:"img"`
 }
@@ -150,7 +150,7 @@ func getStickerByMsg(ctx context.Context, mgs string) string {
 	return ""
 }
 
-func getStickers(ctx context.Context) Response {
+func getStickers(ctx context.Context) response {
 	jsonPath, err := url.JoinPath(baseURL, stickersJSON)
 	if err != nil {
 		panic(err)
@@ -165,9 +165,15 @@ func getStickers(ctx context.Context) Response {
 	if err != nil {
 		panic(err)
 	}
-	defer resp.Body.Close()
 
-	var stickers Response
+	defer func() {
+		err = resp.Body.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	var stickers response
 	if err = json.NewDecoder(resp.Body).Decode(&stickers); err != nil {
 		panic(err)
 	}
