@@ -5,7 +5,7 @@ WORKDIR /app
 COPY . .
 RUN go mod download && go build -o main /app/cmd/main.go
 
-FROM alpine:3.21@sha256:56fa17d2a7e7f168a043a2712e63aed1f8543aeafdcee47c58dcffe38ed51099
+FROM alpine:3.22@sha256:8a1f59ffb675680d47db6337b49d22281a139e9d709335b492be023728e11715
 
 WORKDIR /app
 
